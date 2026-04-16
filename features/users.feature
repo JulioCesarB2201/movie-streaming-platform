@@ -38,4 +38,19 @@ Scenario: Erro ao atualizar a perfil
     And escrevo na descrição: "o maior fã de filmes do adam sandler" 
     And seleciono em "Salvar alterações" 
     Then o sistema deve exibir a mensagem "Erro ao atualizar perfil: Já existe alguém com o Nickname 'admin'" 
+    And o sistema deve exibir a mensagem "Tente novamente com outro nome de usuário"
     And ao acessar minha página pública, todos os usuários devem ver as informações do perfil antes da tentativa de atualização
+
+Scenario: Login com perfil não cadastrado
+    Given eu estou na tela "Página inicial" 
+    And eu preencho username com "llucasEmanuel"
+    And eu preencho senha com "lukinhas#123"
+    And eu seleciono "Logar"
+    Then eu recebo a mensagem "Conta não cadastrada. Impossível fazer login."
+
+Scenario: Remoção de usuário
+    Given eu estou logado como "llucasEmanuel"
+    And eu estou na tela "Meu perfil"
+    When eu seleciono "Remover conta"
+    And eu confirmo a escolha com "Confirmo que quero remover a conta"
+    Then o sistema deve mostrar a mensagem "Conta removida com sucesso"
