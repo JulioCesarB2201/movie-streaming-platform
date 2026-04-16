@@ -50,5 +50,5 @@ Scenario: Alterar visibilidade de playlist privada para pública
 Scenario: Adicionar filme duplicado na playlist
     Given a playlist "Marvel" já contém o filme "Iron Man"
     When eu tento adicionar o filme "Iron Man" novamente
-    Then o sistema  avisa que já existe esse filme na playlist
-    And não adiciona novamente
+    Then o sistema exibe o alerta "Este filme já faz parte da playlist Marvel"
+    And a operação de adição é cancelada
