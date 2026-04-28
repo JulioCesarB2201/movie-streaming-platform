@@ -1,66 +1,93 @@
 Feature: Recomendações e Seções Personalizadas
     As a usuário da plataforma 
     I want receber sugestões de conteúdo baseadas no meu histórico e preferências
-    So that eu possa descobrir novos filmes do meu interesse de forma rápida e personalizada
+    So that eu possa descobrir novos filmes de forma rápida e personalizada
 
-
-Scenario: Exibir seção de filmes parecidos com um título assistido
-    Given que o usuário está logado
-    And assisti recentemente ao filme de ficção científica "Círculo de fogo" 
-    When eu acesso a página inicial da plataforma 
-    Then devo ver uma seção intitulada "Porque você assistiu Círculo de fogo" 
-    And esta seção deve conter o filme "Matrix" na lista de sugestões 
-
-Scenario: Exibir conteúdos populares para usuário sem histórico
-    Given que o usuário "Usuario1" acabou de realizar o primeiro login
-    And ainda não possui nenhum filme no histórico de visualização 
-    When acessar a área de recomendações personalizadas
-    Then o sistema deve exibir a seção "Lançamentos e Populares" no topo da página 
+Scenario: Exibir recomendações padrão para novo usuário
+    Given o usuário está logado na plataforma
+    And o usuário não possui histórico de visualização
+    And o usuário está na página inicial
+    When o usuário acessar a seção "Recomendados"
+    Then o sistema deve exibir a playlist "Lançamentos e Populares" na primeira posição da página 
     And não deve ser exibida nenhuma seção de recomendações baseada em gostos pessoais
 
-Scenario: Recomendar filmes de um gênero frequentemente assistido
-    Given que o usuário assistiu a mais de 5 filmes do gênero "Comédia" na última semana 
-    When o usuário acessa a seção "Recomendados" 
-    Then a seção "Filmes do seu gênero favorito: Comédia" deve ser exibida 
-    And o filme "Cabras da Peste" deve aparecer entre as primeiras opções desta seção
+Scenario Outline: Priorizar recomendações com base no gênero mais assistido
+    Given o usuário está logado na plataforma
+    And o usuário assistiu a 6 filmes do gênero <tipo> nos últimos 7 dias
+    And o usuário está na pagina inicial
+    When o usuário acessa a seção "Recomendados"
+    Then o sistema exibe a playlist <recomendacao> entre as 3 primeiras seções
+    And a playlist <recomendacao> contém os filmes do gênero <tipo>
 
-Scenario: Sugerir conteúdos de drama para entusiastas do gênero
-    Given que o usuário assistiu a 10 filmes no último mês
-    And 8 desses filmes pertencem ao gênero "Drama"
-    When o usuário acessa a página principal da plataforma
-    Then o sistema deve exibir uma seção chamada "Especialmente para você: Drama"
-    And o filme "Oppenheimer" deve estar presente nesta seção
+    Examples:
+    |tipo    |recomendacao            |   
+    |Comédia |Recomendações de Comédia| 
+    |Terror  |Recomendações de Terror |  
+    |Ação    |Recomendações de Ação   |          
 
-Scenario: Atualizar recomendações após assistir novo conteúdo
-    Given que o usuário tinha "Ação" como seu gênero predominante
-    And ele assiste a 3 novos filmes do gênero "Documentário" em uma única sessão
-    When ele retorna à página inicial
-    Then o sistema deve incluir uma nova seção de "Recomendações de Documentários"
-    And a seção de "Ação" deve ser movida para uma posição inferior na página
+Scenario: Atualizar recomendações após nova interação do usuário
+    Given que o usuário assistiu a 2 filmes do gênero "Ação" nos últimos 7 dias
+    And o usuário assistiu a 4 filmes do gênero "Documentário" nos últimos 7 dias
+    When o usuário assiste a um novo filme do gênero "Documentário"
+    And o usuário acessa a seção "Recomendados"
+    Then o sistema exibe a playlist "Recomendações de Documentários" acima da playlist "Ação"
+    And a playlist "Recomendações de Documentários" contém os filmes do gênero "Documentário"
 
-Scenario: Limpeza de histórico remove personalização
-    Given que o usuário tinha recomendações baseadas no filme "Vingadores"
-    And ele utiliza a função "Apagar histórico completo"
-    When ele volta para a página inicial
-    Then a seção "Porque você assistiu Vingadores" deve ter sido removida
-    And a conta deve voltar ao estado padrão de um usuário novo
+Scenario: Remover personalização após limpeza do histórico
+    Given que o usuário está logado
+    And que o usuário possui no histórico o filme "Vingadores"
+    And o sistema exibe a playlist "Porque você assistiu Vingadores"
+    When o usuário seleciona a opção "Apagar histórico completo"
+    And o usuário acessa a seção "Recomedados"
+    Then o sistema não exibe a playlist "Porque você assistiu Vingadores"
+    And o sistema exibe a playlist "Lançamentos e Populares"
+    And o sistema não exibe seções personalizadas baseadas em histórico
 
-Scenario: Ocultar seção de gênero quando não há dados suficientes
-    Given que o usuário assistiu apenas 1 filme de "Terror"
-    And a regra de negócio exige no mínimo 3 filmes para personalizar o gênero
-    When ela visualiza a seção "Recomendados"
-    Then o sistema não deve exibir a seção "Porque você assiste Terror"
-    And deve sugerir que o usuário continue assistindo filmes para receber dicas melhores
+Scenario: Não exibir recomendações de gênero quando não há dados suficientes
+    Given que o usuário está logado
+    And que o usuário assistiu a 1 filme do gênero "Terror"
+    And a regra de negócio exige no mínimo 3 filmes do mesmo gênero para gerar recomendações
+    When o usuário acessa a seção "Recomedados"
+    Then o sistema não exibe a playlist "Recomendações de Terror"
+    And o sistema exibe a mensagem "Assista mais conteúdos para melhorar suas recomendações"
 
-Scenario Outline: Sugerir filmes conforme o gênero mais assistido
-    Given que o usuário assistiu ao filme <filme_visto>
-    And este filme pertence ao gênero <genero>
-    When o usuário carrega a página inicial
-    Then o sistema deve exibir a seção de recomendações de <genero>
-    And o título <sugestao> deve estar presente
+Scenario Outline: Gerar recomendações baseadas em filme específico assistido
+    Given que o usuário está logado
+    And o usuário possui no histórico o filme <filme_visto>
+    And o usuário está na pagina inicial
+    When o usuário acessa a seção "Recomedados"
+    Then o sistema exibe a playlist "Porque você assistiu <filme_visto>"
+    And a playlist "Porque você assistiu <filme_visto>" contém o filme <filme_recomendado>
 
-Examples:
-filme_visto      |genero             |sugestao
-"Interestelar"   |"Ficção Científica"|"A Chegada"
-"O Exorcista"    |"Terror"           |"Invocação do Mal"
-"Cabras da peste"|"Comédia"          |"Superbad"
+    Examples:
+    |filme_visto     |filme_recomendado|
+    |Cabras da peste |Superbad         |
+    |Vingadores      |Liga da Justiça  | 
+    |Círculo de Fogo |Matrix           |
+
+Scenario: Atualizar seções após remoção parcial do histórico
+    Given o usuário está logado na plataforma
+    And o usuário está na página principal
+    And o usuário possui no histórico os filmes "Vingadores" e "Titanic"
+    And a playlist "Porque você assistiu Vingadores" está disponível
+    And a playlist "Porque você assistiu Titanic" está disponível
+    When o usuário remove o filme "Vingadores" do histórico
+    And o usuário atualiza a seção "Recomendados"
+    Then o sistema não exibe a playlist "Porque você assistiu Vingadores"
+    And o sistema exibe a playlist "Porque você assistiu Titanic"
+
+Scenario: Restringir acesso para usuário não autenticado
+    Given o usuário não está logado na plataforma
+    When o usuário acessa a página principal
+    Then o sistema exibe a mensagem "Faça login para acessar o conteúdo"
+    And o sistema não exibe seções
+    And o sistema não exibe playlists
+
+Scenario: Gerar recomendações após atingir o mínimo de filmes no gênero
+    Given o usuário está logado na plataforma
+    And o usuário assistiu a 2 filmes do gênero "Terror"
+    And a regra de negócio exige no mínimo 3 filmes do mesmo gênero para gerar recomendações
+    When o usuário assiste ao filme "Invocação do Mal"
+    And o usuário acessa a seção "Recomendados"
+    Then o sistema exibe a playlist "Recomendações de Terror"
+    And a playlist "Recomendações de Terror" contém os filmes do gênero "Terror"
