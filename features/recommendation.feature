@@ -8,16 +8,16 @@ Scenario: Exibir recomendações padrão para novo usuário
     And eu não possuo histórico de visualização
     And eu estou na página "Principal"
     When eu acesso a página "Recomendados"
-    Then a página "Recomendados" deve exibir a playlist "Lançamentos e Populares" na primeira posição da página 
+    Then a página "Recomendados" deve exibir a playlist "Lançamentos e Populares" em destaque na página 
     And não deve ser exibida nenhuma seção de recomendações baseada em gostos pessoais
 
 Scenario Outline: Priorizar recomendações com base no gênero mais assistido
     Given eu acesso o sistema como "usuário"
-    And eu assisti a 6 filmes do gênero <tipo> nos últimos 7 dias
+    And eu assisti a "6" filmes do gênero "<tipo>" nos últimos "7" dias
     And eu estou na pagina "Principal"
     When eu acesso a página "Recomendados"
-    Then a página "Recomendados" exibe a playlist <recomendacao> entre as 3 primeiras seções
-    And a playlist <recomendacao> contém os filmes do gênero <tipo>
+    Then a página "Recomendados" exibe a playlist "<recomendacao>" entre as 3 primeiras seções
+    And a playlist "<recomendacao>" contém os filmes do gênero "<tipo>"
 
     Examples:
     |tipo    |recomendacao            |   
@@ -27,8 +27,8 @@ Scenario Outline: Priorizar recomendações com base no gênero mais assistido
 
 Scenario: Atualizar recomendações após nova interação do usuário
     Given eu acesso o sistema como "usuário"
-    And eu assisti a 2 filmes do gênero "Ação" nos últimos "7 dias"
-    And eu assisti a 4 filmes do gênero "Documentário" nos últimos "7 dias"
+    And eu assisti a "2" filmes do gênero "Ação" nos últimos "7" dias
+    And eu assisti a "4" filmes do gênero "Documentário" nos últimos "7" dias
     When eu assistir a um novo filme do gênero "Documentário"
     And eu acessar a seção "Recomendados"
     Then a página "Recomendados" exibe a playlist "Recomendações de Documentários" acima da playlist "Ação"
@@ -46,19 +46,19 @@ Scenario: Remover personalização após limpeza do histórico
 
 Scenario: Não exibir recomendações de gênero quando não há dados suficientes
     Given eu acesso o sistema como "usuário"
-    And eu assisti a 1 filme do gênero "Terror"
-    And a regra de negócio exige no mínimo 3 filmes do mesmo gênero para gerar recomendações
+    And eu assisti a "1" filme do gênero "Terror"
+    And a regra de negócio exige no mínimo "3" filmes do mesmo gênero para gerar recomendações
     When eu acesso a página "Recomendados"
     Then a página "Recomendados" não exibe a playlist "Recomendações de Terror"
     And a página "Recomendados" exibe a mensagem "Assista mais conteúdos para melhorar suas recomendações"
 
 Scenario Outline: Gerar recomendações baseadas em filme específico assistido
     Given eu acesso o sistema como "usuário"
-    And eu possuo no histórico o filme <filme_visto>
+    And eu possuo no histórico o filme "<filme_visto>"
     And eu estou na página "Principal"
     When eu acesso a página "Recomendados"
     Then a página "Recomendados" exibe a playlist "Porque você assistiu <filme_visto>"
-    And a playlist "Porque você assistiu <filme_visto>" contém o filme <filme_recomendado>
+    And a playlist "Porque você assistiu <filme_visto>" contém o filme "<filme_recomendado>"
 
     Examples:
     |filme_visto     |filme_recomendado|
@@ -78,16 +78,16 @@ Scenario: Atualizar seções após remoção parcial do histórico
     And a página "Recomendados" exibe a playlist "Porque você assistiu Titanic"
 
 Scenario: Restringir acesso para usuário não autenticado
-    Given o usuário "João" não está logado na plataforma
-    When o usuário "João" acessa a página "Principal"
+    Given eu não está logado na plataforma
+    When eu acesso a página "Principal"
     Then o sistema exibe a mensagem "Faça login para acessar o conteúdo"
-    And o sistema não exibe páginas
-    And o sistema não exibe playlists
+    And o sistema não exibe "Páginas"
+    And o sistema não exibe "Playlists"
 
 Scenario: Gerar recomendações após atingir o mínimo de filmes no gênero
     Given eu acesso o sistema como "usuário"
-    And eu assisti a 2 filmes do gênero "Terror"
-    And a regra de negócio exige no mínimo 3 filmes do mesmo gênero para gerar recomendações
+    And eu assisti a "2" filmes do gênero "Terror"
+    And a regra de negócio exige no mínimo "3" filmes do mesmo gênero para gerar recomendações
     When eu assisto ao filme "Invocação do Mal"
     And eu acesso a página "Recomendados"
     Then a página "Recomendados" exibe a playlist "Recomendações de Terror"
