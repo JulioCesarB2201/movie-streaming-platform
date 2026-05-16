@@ -77,4 +77,37 @@ export class RecommendationService {
       movies: recomendacoesGenero,
     };
   }
+
+  // LÓGICA PARA A ROTA /recommendations/similar/:movieId
+  async getSimilarMovies(movieId: string) {
+    // 1. Busca o filme atual para saber o gênero dele
+    const filmeAtual = await prisma.movie.findUnique({
+      where: { id: movieId }
+    });
+
+    // Se o filme não existir no banco, retorna um aviso
+    if (!filmeAtual) {
+      return {
+        sectionTitle: "Filmes Similares",
+        movies: []
+      };
+    }
+
+    // 2. Busca filmes do mesmo gênero, excluindo o filme atual da lista
+    const filmesSimilares = await prisma.movie.findMany({
+      where: {
+        genre: filmeAtual.genre,
+        id: {
+          not: movieId // "not" diz ao Prisma: traga todos MENOS este ID
+        }
+      },
+      take: 5 // Limita a barra lateral em até 5 recomendações
+    });
+
+    return {
+      sectionTitle: `Porque você assistiu a ${filmeAtual.title}`,
+      movies: filmesSimilares
+    };
+  }
+
 }

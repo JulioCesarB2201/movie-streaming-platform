@@ -34,4 +34,21 @@ export class RecommendationController {
       return response.status(500).json({ error: 'Erro ao buscar tendências.' });
     }
   }
+
+  // Trata a rota /recommendations/similar/:movieId
+  async handleSimilar(request: Request, response: Response): Promise<Response> {
+    try {
+      const movieId = request.params.movieId as string;
+
+      if (!movieId) {
+        return response.status(400).json({ error: 'O ID do filme é obrigatório.' });
+      }
+
+      const similarMovies = await recommendationService.getSimilarMovies(movieId);
+      return response.status(200).json(similarMovies);
+    } catch (error) {
+      console.error(error);
+      return response.status(500).json({ error: 'Erro ao buscar filmes similares.' });
+    }
+  }
 }

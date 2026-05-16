@@ -10,4 +10,7 @@ recommendationRoutes.get('/genres/:userId', recommendationController.handleGenre
 // 2. Rota para os Populares/Lançamentos 
 recommendationRoutes.get('/trending', recommendationController.handleTrending);
 
+// 3. Rota para filmes Similares a um filme específico
+recommendationRoutes.get('/similar/:movieId', recommendationController.handleSimilar);
+
 export { recommendationRoutes };
