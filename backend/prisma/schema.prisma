@@ -8,14 +8,33 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// 1. Tabela de Usuários
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  name      String?
+  history   History[] // Relacionamento: Um usuário tem muitos registros no histórico
+}
+
+// 2. Tabela de Filmes/Conteúdos
 model Movie {
+  id          String    @id @default(uuid())
+  title       String
+  genre       String    // Ex: "Ação", "Terror", "Comédia", "Documentário"
+  isPopular   Boolean   @default(false) // Fundamental para o Cenário 1 (Usuário Novo)
+  createdAt   DateTime  @default(now())
+  history     History[] // Relacionamento: Um filme pode estar no histórico de vários usuários
+}
+
+// 3. Tabela Meio (Histórico de Visualização)
+// Ela conecta um Usuário a um Filme e diz QUANDO ele assistiu
+model History {
   id        String   @id @default(uuid())
-  title     String?  // O '?' significa que pode ser nulo (para testar o teu fallback)
-  file_name String?
-  synopsis  String?
-  genres    String?
-  duration  String?
-  director  String?
-  cast      String?
-  createdAt DateTime @default(now())
+  userId    String
+  movieId   String
+  watchedAt DateTime @default(now()) // Fundamental para a regra dos "últimos 7 dias"
+
+  // Configurações de chaves estrangeiras (ligações entre as tabelas)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
 }
