@@ -30,12 +30,13 @@ export class RecommendationService {
       include: { movie: true }
     });
 
-    // Se não tem histórico recente, avisa ou pode sugerir chamar os populares
+    // Se não tem histórico recente, sugere os lançamentos e populares
     if (historicoRecente.length === 0) {
+      const filmesPopulares = await prisma.movie.findMany({ where: { isPopular: true }, take: 10 });
       return {
-        message: "Assista mais conteúdos para gerar recomendações por gênero",
-        sectionTitle: "Recomendações de Gênero",
-        movies: []
+        sectionTitle: "Lançamentos e Populares",
+        movies: filmesPopulares,
+        message: "Assista mais conteúdos para melhorar suas recomendações"
       };
     }
 
