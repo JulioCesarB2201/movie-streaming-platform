@@ -4,6 +4,10 @@ import { RecommendationController } from '../controllers/recommendation-controll
 const recommendationRoutes = Router();
 const recommendationController = new RecommendationController();
 
-recommendationRoutes.get('/:userId', recommendationController.handle);
+// 1. Rota para os Gêneros Mais Assistidos 
+recommendationRoutes.get('/genres/:userId', recommendationController.handleGenres);
+
+// 2. Rota para os Populares/Lançamentos 
+recommendationRoutes.get('/trending', recommendationController.handleTrending);
 
 export { recommendationRoutes };

@@ -4,21 +4,34 @@ import { RecommendationService } from '../services/recommendation-service';
 const recommendationService = new RecommendationService();
 
 export class RecommendationController {
-  async handle(request: Request, response: Response): Promise<Response> {
+  
+  // Trata a rota /recommendations/genres/:userId
+  async handleGenres(request: Request, response: Response): Promise<Response> {
     try {
-      // Pega o userId que vai vir pela URL (ex: /recommendations/id-do-usuario)
-      const { userId } = request.params;
+      const userId = request.params.userId as string;
 
-      if (typeof userId !== 'string') {
-        return response.status(400).json({ error: 'ID do usuário inválido.' });
+      if (!userId) {
+        return response.status(400).json({ error: 'O ID do usuário é obrigatório.' });
       }
 
-      const recommendations = await recommendationService.getRecommendations(userId);
-
+      // Chama a lógica de gênero do Service
+      const recommendations = await recommendationService.getGenreRecommendations(userId);
       return response.status(200).json(recommendations);
     } catch (error) {
       console.error(error);
-      return response.status(500).json({ error: 'Erro interno no servidor do motor de recomendações.' });
+      return response.status(500).json({ error: 'Erro no motor de recomendações por gênero.' });
+    }
+  }
+
+  // Trata a rota /recommendations/trending
+  async handleTrending(request: Request, response: Response): Promise<Response> {
+    try {
+      // Chama a lógica de populares pura do Service
+      const trending = await recommendationService.getTrendingMovies();
+      return response.status(200).json(trending);
+    } catch (error) {
+      console.error(error);
+      return response.status(500).json({ error: 'Erro ao buscar tendências.' });
     }
   }
 }
