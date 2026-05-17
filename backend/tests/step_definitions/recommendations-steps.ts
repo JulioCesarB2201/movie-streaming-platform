@@ -10,6 +10,7 @@ const api = axios.create({
 
 let currentUserId: string = ""; 
 let response: any;
+let config: any;
 
 Before(async () => {
     const user = await DBUtils.garantirUsuario("julio_bdd_dinamico@teste.com", "Julio Cesar Dinamico");
@@ -20,7 +21,11 @@ Before(async () => {
 // --- GIVENS (Contextos) ---
 
 Given('eu acesso o sistema como {string}', function (role) {
-    // Lógica conceitual de sessão
+   config = { 
+        headers: { 
+            'x-test-user-id': currentUserId 
+        } 
+    };
 });
 
 Given('eu não está logado na plataforma', function () {
@@ -31,8 +36,8 @@ Given('eu não possuo histórico de visualização', async function () {
     await DBUtils.limparHistorico(currentUserId);
 });
 
-Given('eu estou na página {string}', function (pagina) {
-    // Lógica conceitual
+Given('eu estou na página {string}', function (_pagina) {
+    // Passo conceitual de navegação para testes de API
 });
 
 Given('eu assisti a {string} filmes do gênero {string} nos últimos {string} dias', async function (qtd, genero, dias) {
@@ -48,7 +53,10 @@ Given('eu assisti a {string} filme do gênero {string}', async function (qtd, ge
 });
 
 Given('a regra de negócio exige no mínimo {string} filmes do mesmo gênero para gerar recomendações', function (minimo) {
-    // Regra implícita do motor de negócio
+    const valorMinimo = parseInt(minimo, 10);
+    // Asserção de segurança: Garante que o teste do Gherkin está alinhado 
+    // com a regra de negócio atual do sistema (que é 3)
+    assert.strictEqual(valorMinimo, 3, "A regra de negócio configurada no backend diverge do cenário de teste.");
 });
 
 Given('eu possuo no histórico o filme {string}', async function (nomeFilme) {
@@ -63,15 +71,13 @@ Given('eu possuo no histórico os filmes {string} e {string}', async function (f
     }
 });
 
-Given('a playlist {string} está disponível', function (playlist) {
-    // Lógica conceitual
+Given('a playlist {string} está disponível', function (_playlist) {
+    // Passo conceitual. A disponibilidade real é ditada pelo histórico inserido nos passos anteriores.
 });
 
 // --- WHENS (Ações com Headers Injetados) ---
 
 When('eu acesso a página {string}', async function (pagina) {
-    const config = { headers: { 'x-test-user-id': currentUserId } };
-
     if (!currentUserId) {
         response = { status: 401, data: { message: "Faça login para acessar o conteúdo" } };
         return;
@@ -93,7 +99,6 @@ When('eu acesso a página {string}', async function (pagina) {
 });
 
 When('eu acesso a seção {string}', async function (secao) {
-    const config = { headers: { 'x-test-user-id': currentUserId } };
     response = await api.get(`/recommendations/genres/${currentUserId}`, config);
 });
 
@@ -117,7 +122,6 @@ When('eu removo o filme {string} do histórico', async function (nomeFilme) {
 });
 
 When('eu atualizo a página {string}', async function (pag) {
-    const config = { headers: { 'x-test-user-id': currentUserId } };
     response = await api.get(`/recommendations/genres/${currentUserId}`, config);
 });
 
@@ -156,8 +160,6 @@ Then('a página {string} não exibe a playlist {string}', function (pag, lista) 
 });
 
 Then('a página {string} exibe a playlist {string}', async function (pag, listaEsperada) {
-    const config = { headers: { 'x-test-user-id': currentUserId } };
-
     if (listaEsperada.includes("Porque você assistiu")) {
         const movieId = await DBUtils.obterUltimoMovieIdDoHistorico(currentUserId);
         if (movieId) {
