@@ -56,11 +56,6 @@ Given('eu possuo no histórico o filme {string}', async function (nomeFilme) {
     await DBUtils.adicionarAoHistorico(currentUserId, filme.id);
 });
 
-Given('possuo no histórico o filme {string}', async function (nomeFilme) {
-    const filme = await DBUtils.garantirFilmeUnico(nomeFilme);
-    await DBUtils.adicionarAoHistorico(currentUserId, filme.id);
-});
-
 Given('eu possuo no histórico os filmes {string} e {string}', async function (filme1, filme2) {
     for (const nome of [filme1, filme2]) {
         const filme = await DBUtils.garantirFilmeUnico(nome);
@@ -69,10 +64,6 @@ Given('eu possuo no histórico os filmes {string} e {string}', async function (f
 });
 
 Given('a playlist {string} está disponível', function (playlist) {
-    // Lógica conceitual
-});
-
-Given('o página {string} exibe a playlist {string}', function (pag, lista) {
     // Lógica conceitual
 });
 
@@ -88,16 +79,20 @@ When('eu acesso a página {string}', async function (pagina) {
 
     const historicoCompleto = await DBUtils.buscarHistoricoCompleto(currentUserId);
 
-    if (historicoCompleto.length >= 3) {
+    // Se o teste diz que está acessando "Recomendados", batemos na rota principal de gêneros
+    // que é onde ficam as travas de "Assista mais conteúdos..."
+    if (pagina === "Recomendados") {
         response = await api.get(`/recommendations/genres/${currentUserId}`, config);
-    } else if (historicoCompleto.length === 1 || (historicoCompleto.length === 2 && historicoCompleto[0].movie.title === "Vingadores")) {
+    } 
+    // Caso contrário, mantém as regras conceituais dos outros cenários específicos
+    else if (historicoCompleto.length === 1 || (historicoCompleto.length === 2 && historicoCompleto[0].movie.title === "Vingadores")) {
         response = await api.get(`/recommendations/similar/${historicoCompleto[0].movieId}`, config);
     } else {
         response = await api.get('/recommendations/trending', config);
     }
 });
 
-When('eu acessar a seção {string}', async function (secao) {
+When('eu acesso a seção {string}', async function (secao) {
     const config = { headers: { 'x-test-user-id': currentUserId } };
     response = await api.get(`/recommendations/genres/${currentUserId}`, config);
 });
@@ -139,9 +134,7 @@ Then('não deve ser exibida nenhuma seção de recomendações baseada em gostos
 
 Then('a página {string} exibe a playlist {string} entre as 3 primeiras seções', function (pag, playlistEsperada) {
     assert.strictEqual(response.status, 200);
-    let recebido = response.data.sectionTitle;
-    if (recebido === "Recomendações de Documentário") recebido = "Recomendações de Documentários";
-    assert.strictEqual(recebido, playlistEsperada);
+    assert.strictEqual(response.data.sectionTitle, playlistEsperada);
 });
 
 Then('a playlist {string} contém os filmes do gênero {string}', function (playlist, genero) {
@@ -151,13 +144,7 @@ Then('a playlist {string} contém os filmes do gênero {string}', function (play
 });
 
 Then('a página {string} exibe a playlist {string} acima da playlist {string}', function (pag, lista1, lista2) {
-    let recebido = response.data.sectionTitle;
-    if (recebido === "Recomendações de Documentário") recebido = "Recomendações de Documentários";
-    assert.strictEqual(recebido, lista1);
-});
-
-Then('o página {string} não exibe a playlist {string}', function (pag, lista) {
-    assert.notStrictEqual(response.data.sectionTitle, lista);
+    assert.strictEqual(response.data.sectionTitle, lista1);
 });
 
 Then('a página {string} não exibe a playlist {string}', function (pag, lista) {
@@ -168,17 +155,17 @@ Then('a página {string} não exibe a playlist {string}', function (pag, lista) 
     }
 });
 
-Then('a página {string} exibe a playlist {string}', function (pag, listaEsperada) {
-    let recebido = response.data.sectionTitle;
-    
-    if (recebido && recebido.includes("assistiu a")) {
-        recebido = recebido.replace("assistiu a", "assistiu");
-    }
-    if (recebido === "Recomendações de Geral" || (recebido && recebido.includes("Lançamentos") && listaEsperada.includes("Titanic"))) {
-        recebido = "Porque você assistiu Titanic";
-    }
-    
-    assert.strictEqual(recebido, listaEsperada);
+Then('a página {string} exibe a playlist {string}', async function (pag, listaEsperada) {
+    const config = { headers: { 'x-test-user-id': currentUserId } };
+
+    if (listaEsperada.includes("Porque você assistiu")) {
+        const movieId = await DBUtils.obterUltimoMovieIdDoHistorico(currentUserId);
+        if (movieId) {
+            response = await api.get(`/recommendations/similar/${movieId}`, config);
+        }
+    } 
+
+    assert.strictEqual(response.data.sectionTitle, listaEsperada);
 });
 
 Then('a página {string} não exibe seções personalizadas baseadas em histórico', function (pag) {
@@ -186,12 +173,6 @@ Then('a página {string} não exibe seções personalizadas baseadas em históri
 });
 
 Then('a página {string} exibe a mensagem {string}', function (pag, mensagemEsperada) {
-    if (!response.data) {
-        response.data = {};
-    }
-    if (!response.data.sectionTitle || response.data.sectionTitle.includes("Lançamentos") || response.data.message === undefined) {
-         response.data.message = "Assista mais conteúdos para melhorar suas recomendações";
-    }
     assert.strictEqual(response.data.message, mensagemEsperada);
 });
 

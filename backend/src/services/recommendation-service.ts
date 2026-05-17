@@ -58,7 +58,7 @@ export class RecommendationService {
     // Regra dos 3 filmes mínimos
     if (maiorContagem < 3) {
       return {
-        message: "Assista mais conteúdos desse gênero para personalizar sua lista",
+        message: "Assista mais conteúdos para melhorar suas recomendações",
         sectionTitle: `Recomendações de ${generoFavorito}`,
         movies: [],
       };
@@ -106,7 +106,7 @@ export class RecommendationService {
     });
 
     return {
-      sectionTitle: `Porque você assistiu a ${filmeAtual.title}`,
+      sectionTitle: `Porque você assistiu ${filmeAtual.title}`,
       movies: filmesSimilares
     };
   }

@@ -70,5 +70,14 @@ export const DBUtils = {
         if (filme) {
             await prisma.history.deleteMany({ where: { userId, movieId: filme.id } });
         }
+    },
+
+    //Busca o ID do último filme assistido pelo usuário
+    async obterUltimoMovieIdDoHistorico(userId: string): Promise<string | null> {
+        const historico = await prisma.history.findFirst({
+            where: { userId },
+            orderBy: { watchedAt: 'desc' } // Pega o inserido recentemente
+        });
+        return historico ? historico.movieId : null;
     }
 };
