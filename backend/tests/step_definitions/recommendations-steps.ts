@@ -35,10 +35,6 @@ Given('eu estou na página {string}', function (pagina) {
     // Lógica conceitual
 });
 
-Given('eu estou na pagina {string}', function (pagina) {
-    // Variação ortográfica
-});
-
 Given('eu assisti a {string} filmes do gênero {string} nos últimos {string} dias', async function (qtd, genero, dias) {
     await DBUtils.garantirEAssistirFilmes(currentUserId, qtd, genero);
 });

@@ -21,7 +21,7 @@ model Movie {
   id          String    @id @default(uuid())
   title       String
   genre       String    // Ex: "Ação", "Terror", "Comédia", "Documentário"
-  isPopular   Boolean   @default(false) // Fundamental para o Cenário 1 (Usuário Novo)
+  isPopular   Boolean   @default(false) // Fundamental para usuário novo ou sem histórico
   createdAt   DateTime  @default(now())
   history     History[] // Relacionamento: Um filme pode estar no histórico de vários usuários
 }
