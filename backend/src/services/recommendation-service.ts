@@ -42,7 +42,7 @@ export class RecommendationService {
 
     const contagemGeneros: Record<string, number> = {};
     historicoRecente.forEach(registro => {
-      const genero = registro.movie.genre;
+      const genero = registro.movie.genres;
       contagemGeneros[genero] = (contagemGeneros[genero] || 0) + 1;
     });
 
@@ -67,7 +67,7 @@ export class RecommendationService {
     const idsFilmesAssistidos = historicoRecente.map(h => h.movieId);
     const recomendacoesGenero = await prisma.movie.findMany({
       where: {
-        genre: generoFavorito,
+        genres: generoFavorito,
         id: { notIn: idsFilmesAssistidos }
       },
       take: 5
@@ -97,7 +97,7 @@ export class RecommendationService {
     // 2. Busca filmes do mesmo gênero, excluindo o filme atual da lista
     const filmesSimilares = await prisma.movie.findMany({
       where: {
-        genre: filmeAtual.genre,
+        genres: filmeAtual.genres,
         id: {
           not: movieId // "not" diz ao Prisma: traga todos MENOS este ID
         }

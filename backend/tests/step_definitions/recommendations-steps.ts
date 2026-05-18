@@ -143,7 +143,7 @@ Then('a página {string} exibe a playlist {string} entre as 3 primeiras seções
 
 Then('a playlist {string} contém os filmes do gênero {string}', function (playlist, genero) {
     if (response.data.movies && response.data.movies.length > 0) {
-        assert.strictEqual(response.data.movies[0].genre, genero);
+        assert.strictEqual(response.data.movies[0].genres, genero);
     }
 });
 

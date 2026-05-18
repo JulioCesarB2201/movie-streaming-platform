@@ -24,7 +24,7 @@ export const DBUtils = {
         let filme = await prisma.movie.findFirst({ where: { title: nomeFilme } });
         if (!filme) {
             filme = await prisma.movie.create({ 
-                data: { title: nomeFilme, genre: "Geral", isPopular: false } 
+                data: { title: nomeFilme, genres: "Geral", isPopular: false } 
             });
         }
         return filme;
@@ -33,11 +33,11 @@ export const DBUtils = {
     // Cria filmes e insere no histórico para simular visualizações por gênero
     async garantirEAssistirFilmes(userId: string, qtd: string, genero: string) {
         const limite = parseInt(qtd);
-        let filmes = await prisma.movie.findMany({ where: { genre: genero } });
+        let filmes = await prisma.movie.findMany({ where: { genres: genero } });
         
         while (filmes.length < limite) {
             const novoFilme = await prisma.movie.create({
-                data: { title: `Filme Autogerado ${genero} ${filmes.length + 1}`, genre: genero, isPopular: true }
+                data: { title: `Filme Autogerado ${genero} ${filmes.length + 1}`, genres: genero, isPopular: true }
             });
             filmes.push(novoFilme);
         }
