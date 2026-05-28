@@ -57,10 +57,10 @@ export class RecommendationService {
 
     // Regra dos 3 filmes mínimos
     if (maiorContagem < 3) {
+      const todosOsFilmes = await prisma.movie.findMany({ take: 10 }); // Pega os 10 primeiros como sugestão
       return {
         message: "Assista mais conteúdos para melhorar suas recomendações",
-        sectionTitle: `Recomendações de ${generoFavorito}`,
-        movies: [],
+        movies: todosOsFilmes,
       };
     }
 

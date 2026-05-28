@@ -83,19 +83,12 @@ When('eu acesso a página {string}', async function (pagina) {
         return;
     }
 
-    const historicoCompleto = await DBUtils.buscarHistoricoCompleto(currentUserId);
-
     // Se o teste diz que está acessando "Recomendados", batemos na rota principal de gêneros
     // que é onde ficam as travas de "Assista mais conteúdos..."
     if (pagina === "Recomendados") {
         response = await api.get(`/recommendations/genres/${currentUserId}`, config);
     } 
-    // Caso contrário, mantém as regras conceituais dos outros cenários específicos
-    else if (historicoCompleto.length === 1 || (historicoCompleto.length === 2 && historicoCompleto[0].movie.title === "Vingadores")) {
-        response = await api.get(`/recommendations/similar/${historicoCompleto[0].movieId}`, config);
-    } else {
-        response = await api.get('/recommendations/trending', config);
-    }
+    
 });
 
 When('eu acesso a seção {string}', async function (secao) {
@@ -157,6 +150,14 @@ Then('a página {string} não exibe a playlist {string}', function (pag, lista) 
     } else {
         assert.notStrictEqual(response.data.sectionTitle, lista);
     }
+});
+
+Then('a página {string} exibe os filmes do catálogo geral', function (_pag) {
+    // 1. Garante que a propriedade movies veio na resposta da API
+    assert.ok(Array.isArray(response?.data?.movies), "A propriedade 'movies' deveria ser um array.");
+    
+    // 2. Garante que o array NÃO está vazio (ou seja, o backend enviou os filmes de fallback)
+    assert.ok(response.data.movies.length > 0, "O catálogo geral de filmes não foi exibido.");
 });
 
 Then('a página {string} exibe a playlist {string}', async function (pag, listaEsperada) {

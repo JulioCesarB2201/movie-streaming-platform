@@ -51,6 +51,7 @@ Scenario: Não exibir recomendações de gênero quando não há dados suficient
     When eu acesso a página "Recomendados"
     Then a página "Recomendados" não exibe a playlist "Recomendações de Terror"
     And a página "Recomendados" exibe a mensagem "Assista mais conteúdos para melhorar suas recomendações"
+    And a página "Recomendados" exibe os filmes do catálogo geral
 
 Scenario Outline: Gerar recomendações baseadas em filme específico assistido
     Given eu acesso o sistema como "usuário"
