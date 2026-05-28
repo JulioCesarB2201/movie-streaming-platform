@@ -41,9 +41,14 @@ export class RecommendationService {
     }
 
     const contagemGeneros: Record<string, number> = {};
+    const filmesContados = new Set<string>();
+
     historicoRecente.forEach(registro => {
-      const genero = registro.movie.genres;
-      contagemGeneros[genero] = (contagemGeneros[genero] || 0) + 1;
+      if (!filmesContados.has(registro.movieId)) {
+        filmesContados.add(registro.movieId);
+        const genero = registro.movie.genres;
+        contagemGeneros[genero] = (contagemGeneros[genero] || 0) + 1;
+      }
     });
 
     let generoFavorito = "";

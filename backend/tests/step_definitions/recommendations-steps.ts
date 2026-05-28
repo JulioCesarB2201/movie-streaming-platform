@@ -1,5 +1,6 @@
 import { Given, When, Then, Before } from "@cucumber/cucumber";
 import { DBUtils } from "../../src/utils/db-utils";
+import { RecommendationService } from "../../src/services/recommendation-service";
 import axios from "axios";
 import assert from "assert";
 
@@ -8,14 +9,22 @@ const api = axios.create({
     validateStatus: () => true 
 });
 
+// Instancia o serviço para os testes de método direto
+const service = new RecommendationService();
+
 let currentUserId: string = ""; 
 let response: any;
+let serviceResult: any;
 let config: any;
 
 Before(async () => {
     const user = await DBUtils.garantirUsuario("julio_bdd_dinamico@teste.com", "Julio Cesar Dinamico");
     currentUserId = user.id;
     await DBUtils.limparHistorico(currentUserId);
+
+    response = undefined;
+    serviceResult = undefined;
+
 });
 
 // --- GIVENS (Contextos) ---
@@ -75,6 +84,16 @@ Given('a playlist {string} está disponível', function (_playlist) {
     // Passo conceitual. A disponibilidade real é ditada pelo histórico inserido nos passos anteriores.
 });
 
+Given('eu possuo {string} filme(s) assistido(s) do gênero {string} nos últimos {string} dias', async function (quantidade, genero, _dias) {
+    await DBUtils.garantirEAssistirFilmes(currentUserId, quantidade, genero);
+});
+
+Given('eu assisti ao filme {string} do gênero {string} por {string} vezes nos últimos {string} dias', async function (titulo, genero, vezes, _dias) {
+    const loop = parseInt(vezes, 10);
+    
+    await DBUtils.assistirMesmoFilmeRepetido(currentUserId, titulo, genero, loop);
+});
+
 // --- WHENS (Ações com Headers Injetados) ---
 
 When('eu acesso a página {string}', async function (pagina) {
@@ -116,6 +135,11 @@ When('eu removo o filme {string} do histórico', async function (nomeFilme) {
 
 When('eu atualizo a página {string}', async function (pag) {
     response = await api.get(`/recommendations/genres/${currentUserId}`, config);
+});
+
+When('o serviço calcula as recomendações de gênero para o usuário {string}', async function (_role) {
+    // Independente do texto ser "usuário", o código usa o ID seguro do Before
+    serviceResult = await service.getGenreRecommendations(currentUserId);
 });
 
 // --- THENS (Validações) ---
@@ -189,4 +213,36 @@ Then('o sistema exibe a mensagem {string}', function (mensagemEsperada) {
 
 Then('o sistema não exibe {string}', function (elemento) {
     assert.strictEqual(response.status, 401);
+});
+
+Then('o serviço retorna a seção de título {string}', function (tituloEsperado) {
+    assert.strictEqual(serviceResult?.sectionTitle, tituloEsperado);
+});
+
+Then('a lista de filmes recomendados não deve ser vazia', function () {
+    assert.ok(serviceResult?.movies?.length > 0, "A lista de recomendações do serviço veio vazia.");
+});
+
+Then('o serviço retorna a mensagem {string}', function (mensagemEsperada) {
+    assert.strictEqual(serviceResult?.message, mensagemEsperada);
+});
+
+Then('o serviço preenche a lista com os filmes do catálogo geral como fallback', function () {
+    assert.ok(serviceResult?.movies?.length > 0, "O service não incluiu os filmes de fallback.");
+});
+
+Then('a lista de filmes recomendados contém os destaques da plataforma', function () {
+    assert.ok(serviceResult?.movies?.length > 0);
+});
+
+Then('o serviço contabiliza apenas {string} filme único para a regra de mínimo de dados', function (_qtd) {
+    assert.ok(serviceResult?.movies?.length > 0, "A lista de filmes de fallback veio vazia.");
+    
+    assert.notStrictEqual(serviceResult?.sectionTitle, "Recomendações de Terror", "O motor aceitou o spam e gerou recomendações personalizadas de Terror!");
+});
+
+Then('o serviço aplica o fallback exibindo a mensagem {string}', function (mensagemEsperada) {
+    assert.strictEqual(serviceResult?.message, mensagemEsperada);
+    
+    assert.ok(serviceResult?.movies?.length > 0, "O serviço aplicou a mensagem, mas deixou a lista de filmes vazia.");
 });
