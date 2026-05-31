@@ -2,51 +2,48 @@ import { Given, When, Then, Before } from "@cucumber/cucumber";
 import { DBUtils } from "../../src/utils/db-utils";
 import axios from "axios";
 import assert from "assert";
+import { sharedState } from "./shared-state";
 
 const api = axios.create({ 
     baseURL: 'http://localhost:3000', 
     validateStatus: () => true 
 });
 
-let currentUserId: string = ""; 
 let response: any;
 let config: any;
 
 Before(async () => {
     const user = await DBUtils.garantirUsuario("julio_bdd_dinamico@teste.com", "Julio Cesar Dinamico");
-    currentUserId = user.id;
-    await DBUtils.limparHistorico(currentUserId);
-});
-
-// --- GIVENS (Contextos) ---
-
-Given('eu acesso o sistema como {string}', function (role) {
-   config = { 
+    sharedState.currentUserId = user.id;
+    await DBUtils.limparHistorico(sharedState.currentUserId);
+    config = { 
         headers: { 
-            'x-test-user-id': currentUserId 
+            'x-test-user-id': sharedState.currentUserId 
         } 
     };
 });
 
+// --- GIVENS (Contextos) ---
+
 Given('eu não está logado na plataforma', function () {
-    currentUserId = ""; 
+    sharedState.currentUserId = ""; 
 });
 
 Given('eu não possuo histórico de visualização', async function () {
-    await DBUtils.limparHistorico(currentUserId);
+    await DBUtils.limparHistorico(sharedState.currentUserId);
 });
 
 
 Given('eu assisti a {string} filmes do gênero {string} nos últimos {string} dias', async function (qtd, genero, dias) {
-    await DBUtils.garantirEAssistirFilmes(currentUserId, qtd, genero);
+    await DBUtils.garantirEAssistirFilmes(sharedState.currentUserId, qtd, genero);
 });
 
 Given('eu assisti a {string} filmes do gênero {string}', async function (qtd, genero) {
-    await DBUtils.garantirEAssistirFilmes(currentUserId, qtd, genero);
+    await DBUtils.garantirEAssistirFilmes(sharedState.currentUserId, qtd, genero);
 });
 
 Given('eu assisti a {string} filme do gênero {string}', async function (qtd, genero) {
-    await DBUtils.garantirEAssistirFilmes(currentUserId, qtd, genero);
+    await DBUtils.garantirEAssistirFilmes(sharedState.currentUserId, qtd, genero);
 });
 
 Given('a regra de negócio exige no mínimo {string} filmes do mesmo gênero para gerar recomendações', function (minimo) {
@@ -58,13 +55,13 @@ Given('a regra de negócio exige no mínimo {string} filmes do mesmo gênero par
 
 Given('eu possuo no histórico o filme {string}', async function (nomeFilme) {
     const filme = await DBUtils.garantirFilmeUnico(nomeFilme);
-    await DBUtils.adicionarAoHistorico(currentUserId, filme.id);
+    await DBUtils.adicionarAoHistorico(sharedState.currentUserId, filme.id);
 });
 
 Given('eu possuo no histórico os filmes {string} e {string}', async function (filme1, filme2) {
     for (const nome of [filme1, filme2]) {
         const filme = await DBUtils.garantirFilmeUnico(nome);
-        await DBUtils.adicionarAoHistorico(currentUserId, filme.id);
+        await DBUtils.adicionarAoHistorico(sharedState.currentUserId, filme.id);
     }
 });
 
@@ -75,17 +72,17 @@ Given('a playlist {string} está disponível', function (_playlist) {
 // --- WHENS (Ações com Headers Injetados) ---
 
 When('eu acesso a página {string}', async function (pagina) {
-    if (!currentUserId) {
+    if (!sharedState.currentUserId) {
         response = { status: 401, data: { message: "Faça login para acessar o conteúdo" } };
         return;
     }
 
-    const historicoCompleto = await DBUtils.buscarHistoricoCompleto(currentUserId);
+    const historicoCompleto = await DBUtils.buscarHistoricoCompleto(sharedState.currentUserId);
 
     // Se o teste diz que está acessando "Recomendados", batemos na rota principal de gêneros
     // que é onde ficam as travas de "Assista mais conteúdos..."
     if (pagina === "Recomendados") {
-        response = await api.get(`/recommendations/genres/${currentUserId}`, config);
+        response = await api.get(`/recommendations/genres/${sharedState.currentUserId}`, config);
     } 
     // Caso contrário, mantém as regras conceituais dos outros cenários específicos
     else if (historicoCompleto.length === 1 || (historicoCompleto.length === 2 && historicoCompleto[0].movie.title === "Vingadores")) {
@@ -96,30 +93,24 @@ When('eu acesso a página {string}', async function (pagina) {
 });
 
 When('eu acesso a seção {string}', async function (secao) {
-    response = await api.get(`/recommendations/genres/${currentUserId}`, config);
+    response = await api.get(`/recommendations/genres/${sharedState.currentUserId}`, config);
 });
 
 When('eu assistir a um novo filme do gênero {string}', async function (genero) {
-    await DBUtils.garantirEAssistirFilmes(currentUserId, "1", genero);
+    await DBUtils.garantirEAssistirFilmes(sharedState.currentUserId, "1", genero);
 });
 
 When('eu assisto ao filme {string}', async function (nomeFilme) {
     const filme = await DBUtils.garantirFilmeUnico(nomeFilme);
-    await DBUtils.adicionarAoHistorico(currentUserId, filme.id);
-});
-
-When('eu seleciono a opção {string}', async function (opcao) {
-    if (opcao === "Apagar histórico completo") {
-        await DBUtils.limparHistorico(currentUserId);
-    }
+    await DBUtils.adicionarAoHistorico(sharedState.currentUserId, filme.id);
 });
 
 When('eu removo o filme {string} do histórico', async function (nomeFilme) {
-    await DBUtils.removerFilmeDoHistorico(currentUserId, nomeFilme);
+    await DBUtils.removerFilmeDoHistorico(sharedState.currentUserId, nomeFilme);
 });
 
 When('eu atualizo a página {string}', async function (pag) {
-    response = await api.get(`/recommendations/genres/${currentUserId}`, config);
+    response = await api.get(`/recommendations/genres/${sharedState.currentUserId}`, config);
 });
 
 // --- THENS (Validações) ---
@@ -158,7 +149,7 @@ Then('a página {string} não exibe a playlist {string}', function (pag, lista) 
 
 Then('a página {string} exibe a playlist {string}', async function (pag, listaEsperada) {
     if (listaEsperada.includes("Porque você assistiu")) {
-        const movieId = await DBUtils.obterUltimoMovieIdDoHistorico(currentUserId);
+        const movieId = await DBUtils.obterUltimoMovieIdDoHistorico(sharedState.currentUserId);
         if (movieId) {
             response = await api.get(`/recommendations/similar/${movieId}`, config);
         }
