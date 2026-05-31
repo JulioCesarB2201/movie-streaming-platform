@@ -119,8 +119,8 @@ When('eu seleciono a opção {string}', async function (optionName) {
     case "Apagar histórico completo":
       await DBUtils.limparHistorico(sharedState.currentUserId);
       break;
-    //default:
-     // throw new Error(`Opção não suportada: ${optionName}`);
+    default:
+      throw new Error(`Opção não suportada: ${optionName}`);
   }
 });
 
