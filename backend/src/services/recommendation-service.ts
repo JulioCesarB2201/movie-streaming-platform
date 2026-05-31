@@ -4,6 +4,40 @@ const prisma = new PrismaClient();
 
 export class RecommendationService {
   
+  // LÓGICA PARA A ROTA /recommendations/
+  async getAllRecommendations(userId: string) {
+    const ultimoRegistro = await prisma.history.findFirst({
+      where: { userId: userId },
+      orderBy: { watchedAt: 'desc' },
+    });
+
+    const [generosResult, trendingResult] = await Promise.all([
+      this.getGenreRecommendations(userId),
+      this.getTrendingMovies()
+    ]);
+
+    const secoes = [];
+
+    // 1. Sempre adiciona a seção de gêneros (personalizada ou fallback)
+    if (generosResult) secoes.push(generosResult);
+    
+    // 2.SÓ ADICIONA A SEÇÃO DE SIMILARES SE O USUÁRIO REALMENTE TIVER HISTÓRICO!
+    if (ultimoRegistro) {
+      const similarResult = await this.getSimilarMovies(ultimoRegistro.movieId);
+      // Garante que só joga na tela se o banco realmente achou filmes similares
+      if (similarResult && similarResult.movies.length > 0) {
+        secoes.push(similarResult);
+      }
+    }
+    
+    // 3. Sempre adiciona os populares no final
+    if (trendingResult && generosResult?.sectionTitle !== "Lançamentos e Populares"){
+      secoes.push(trendingResult);
+    }
+
+    return secoes;
+  }
+
   // LÓGICA PARA A ROTA /recommendations/trending
   async getTrendingMovies() {
     const filmesPopulares = await prisma.movie.findMany({
@@ -91,13 +125,14 @@ export class RecommendationService {
       where: { id: movieId }
     });
 
-    // Se o filme não existir no banco, retorna um aviso
+    // Se o filme sumiu ou o ID é inválido, aplica o plano B de retornar filmes populares
     if (!filmeAtual) {
-      return {
-        sectionTitle: "Filmes Similares",
-        movies: []
-      };
-    }
+    const filmesPopulares = await prisma.movie.findMany({ where: { isPopular: true }, take: 10 });
+    return {
+      sectionTitle: "Você também pode gostar", // Um título genérico seguro
+      movies: filmesPopulares
+    };
+  }
 
     // 2. Busca filmes do mesmo gênero, excluindo o filme atual da lista
     const filmesSimilares = await prisma.movie.findMany({
@@ -107,7 +142,7 @@ export class RecommendationService {
           not: movieId // "not" diz ao Prisma: traga todos MENOS este ID
         }
       },
-      take: 5 // Limita a barra lateral em até 5 recomendações
+      take: 10 // Limita a barra lateral em até 5 recomendações
     });
 
     return {
