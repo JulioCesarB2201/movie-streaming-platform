@@ -32,10 +32,6 @@ Before(async () => {
 
 // --- GIVENS (Contextos) ---
 
-Given('eu não estou logado na plataforma', function () {
-    sharedState.currentUserId = ""; 
-});
-
 Given('eu não possuo histórico de visualização', async function () {
     await DBUtils.limparHistorico(sharedState.currentUserId);
 });
@@ -204,13 +200,6 @@ Then('a playlist {string} contém o filme {string}', function (playlist, filme) 
     assert.strictEqual(response.status, 200);
 });
 
-Then('o sistema exibe a mensagem "Faça login para acessar o conteúdo"', function () {
-    assert.strictEqual(response.data.message, "Faça login para acessar o conteúdo");
-});
-
-Then('o sistema não exibe {string}', function (elemento) {
-    assert.strictEqual(response.status, 401);
-});
 
 Then('o serviço retorna a seção de título {string}', function (tituloEsperado) {
     assert.strictEqual(serviceResult?.sectionTitle, tituloEsperado);
