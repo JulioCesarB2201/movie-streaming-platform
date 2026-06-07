@@ -44,7 +44,7 @@ export function Header({ activePage, onGoToHome, onGoToPlaylists, onLogout, onGo
             type="button"
             onClick={onGoToRecommendations}
           >
-            Recomendações
+            Recomendados
           </button>
         </nav>
 
