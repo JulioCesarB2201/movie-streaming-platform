@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { MovieCard } from "../../components/MovieCard";
 import { Header } from "../../components/Header"; 
 import { KeepWatchingCard } from "../../components/KeepWatchingCard"; // Certifique-se de que o card está importado
+import { RecommendedSection } from "../../components/RecommendedSection";
 import { getMovies } from "../../services/movieApi";
 import { getUnfinishedMoviesByUserId } from "../../services/historyApi";
 import {
@@ -215,6 +216,13 @@ export function HomePage({ userId, onGoToPlaylists, onGoToHome, onGoToHistory, o
             </div>
           )}
         </section>
+
+        {/* 🌟 SEÇÃO DE RECOMENDAÇÕES PERSONALIZADAS */}
+        <RecommendedSection
+          userId={userId}
+          onSelectMovie={onSelectMovie}
+          onAddToPlaylist={openAddMovieToPlaylistModal}
+        />
 
         {/* SEÇÃO ORIGINAL DO GRID DE FILMES */}
         <section className="catalog-section">
