@@ -1,0 +1,13 @@
+/* Estilos adicionais para a página de recomendações */
+.home-page:has(.recommended-section-container) {
+  animation: fadeInPage 0.3s ease-out;
+}
+
+@keyframes fadeInPage {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
