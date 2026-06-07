@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { MovieCard } from "./MovieCard";
 import { getRecommendations } from "../services/recommendationApi";
 import type { Movie, RecommendationSection } from "../types";
@@ -14,6 +14,7 @@ export function RecommendedSection({ userId, onSelectMovie, onAddToPlaylist }: R
   const [sections, setSections] = useState<RecommendationSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const carouselsRef = useRef<{ [key: number]: HTMLDivElement | null }>({});
 
   useEffect(() => {
     async function loadRecommendations() {
@@ -32,6 +33,17 @@ export function RecommendedSection({ userId, onSelectMovie, onAddToPlaylist }: R
 
     loadRecommendations();
   }, [userId]);
+
+  const handleScroll = (index: number, direction: "left" | "right") => {
+    const container = carouselsRef.current[index];
+    if (container) {
+      const scrollAmount = 400;
+      container.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth"
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -73,16 +85,36 @@ export function RecommendedSection({ userId, onSelectMovie, onAddToPlaylist }: R
             </div>
 
             {section.movies && section.movies.length > 0 ? (
-              <div className="recommendations-carousel">
-                {section.movies.map((movie) => (
-                  <div key={movie.id} className="recommendations-carousel-item">
-                    <MovieCard
-                      movie={movie}
-                      onSelectMovie={onSelectMovie}
-                      onAddToPlaylist={onAddToPlaylist}
-                    />
-                  </div>
-                ))}
+              <div className="recommendations-carousel-wrapper">
+                <button 
+                  className="carousel-arrow left" 
+                  onClick={() => handleScroll(index, "left")}
+                  aria-label="Rolar para esquerda"
+                >
+                  ‹
+                </button>
+                <button 
+                  className="carousel-arrow right" 
+                  onClick={() => handleScroll(index, "right")}
+                  aria-label="Rolar para direita"
+                >
+                  ›
+                </button>
+
+                <div 
+                  ref={(el) => { carouselsRef.current[index] = el; }}
+                  className="recommendations-carousel"
+                >
+                  {section.movies.map((movie) => (
+                    <div key={movie.id} className="recommendations-carousel-item">
+                      <MovieCard
+                        movie={movie}
+                        onSelectMovie={onSelectMovie}
+                        onAddToPlaylist={onAddToPlaylist}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : (
               <p className="no-recommendations-movies">Nenhum filme disponível nesta seção.</p>

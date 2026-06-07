@@ -44,6 +44,61 @@
   letter-spacing: 0.01em;
 }
 
+/* Carousel Wrapper to Position Arrows */
+.recommendations-carousel-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Arrow Navigation Buttons */
+.carousel-arrow {
+  position: absolute;
+  top: calc(50% - 8px); /* Center vertically minus padding bottom space */
+  transform: translateY(-50%);
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(20, 20, 20, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  opacity: 0; /* Hide by default and show on hover */
+  transition: opacity 0.3s ease, background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.carousel-arrow.left {
+  left: -20px;
+}
+
+.carousel-arrow.right {
+  right: -20px;
+}
+
+/* Show arrows on hover of wrapper */
+.recommendations-carousel-wrapper:hover .carousel-arrow {
+  opacity: 1;
+}
+
+.carousel-arrow:hover {
+  background: var(--home-primary, #ffc107);
+  color: var(--home-on-primary, #111111);
+  border-color: var(--home-primary, #ffc107);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-arrow:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
 /* Horizontal Scroll Carousel */
 .recommendations-carousel {
   display: flex;
@@ -123,5 +178,10 @@
   
   .recommendations-info-message {
     font-size: 13px;
+  }
+  
+  /* On touch screens, standard scroll is preferred, hide arrows to avoid layout overlap */
+  .carousel-arrow {
+    display: none;
   }
 }
