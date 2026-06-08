@@ -12,6 +12,7 @@ interface HistoryPageProps {
   onGoToHome: () => void;
   onGoToPlaylists: () => void;
   onGoToHistory: () => void;
+  onGoToProfile?: () => void;
   onGoToRecommendations: () => void;
 }
 
